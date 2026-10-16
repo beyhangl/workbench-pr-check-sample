@@ -1,0 +1,109 @@
+# Offline draft only. Publish after owner review and approved execution scope.
+# pull_request evaluates the PR workflow definition. Only trusted owner-created heads
+# are permitted; independently compare their workflow with this reviewed source before opening.
+# No explicit PR checkout, downloaded PR executable, model deployment, or AWS credentials.
+# Never synchronize, reopen, or rerun to resubmit. Reconcile uncertain outcomes read-only outside this workflow.
+name: Fictional reference evaluation
+on:
+  pull_request:
+    branches: [develop]
+    types: [opened]
+permissions: {}
+concurrency:
+  group: reference-evaluation-${{ github.repository_id }}-${{ github.event.pull_request.number }}-${{ vars.AQ_CHECK_KEY }}
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    if: github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' && github.event.pull_request.base.repo.full_name == github.repository && github.event.pull_request.head.repo.full_name == github.repository && github.event.action == 'opened' && github.event.pull_request.user.login == github.repository_owner && github.actor == github.repository_owner && github.triggering_actor == github.repository_owner && github.run_attempt == 1 && (github.event.pull_request.head.ref == 'sample/pass' || github.event.pull_request.head.ref == 'sample/regression')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
+    steps:
+      - name: Load protected evaluation binding
+        shell: bash
+        env:
+          AQ_SAMPLE_BINDING: ${{ secrets.AQ_SAMPLE_BINDING }}
+          AQ_HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          AQ_PASS_ENDPOINT: ${{ vars.AQ_BASE_AGENT_ENDPOINT }}
+          AQ_REGRESSION_ENDPOINT: ${{ vars.AQ_REGRESSION_AGENT_ENDPOINT }}
+        run: |
+          python3 -I - <<'PYTHON'
+          import json
+          import os
+          import re
+          from pathlib import Path
+          from urllib.parse import urlsplit
+
+          try:
+              binding = json.loads(os.environ['AQ_SAMPLE_BINDING'])
+              fields = ('AQ_ENDPOINT', 'AQ_UI_URL', 'AQ_API_KEY')
+              if not isinstance(binding, dict) or set(binding) != set(fields):
+                  raise ValueError
+              values = {key: binding[key] for key in fields}
+              if any(not isinstance(value, str) or not value.strip()
+                     or any(ord(char) < 32 or ord(char) == 127 for char in value)
+                     for value in values.values()):
+                  raise ValueError
+              # Fixed prospective branch-to-endpoint mapping, never selected from results or PR code.
+              endpoint = {'sample/pass': os.environ['AQ_PASS_ENDPOINT'],
+                          'sample/regression': os.environ['AQ_REGRESSION_ENDPOINT']}[os.environ['AQ_HEAD_BRANCH']]
+              if not re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,47}', endpoint):
+                  raise ValueError
+              masks = set(values.values()) | {endpoint}
+              for key in ('AQ_ENDPOINT', 'AQ_UI_URL'):
+                  parts = urlsplit(values[key])
+                  if parts.scheme != 'https' or not parts.hostname or parts.username or parts.password or parts.query or parts.fragment:
+                      raise ValueError
+                  masks.add(parts.hostname)
+              def command_escape(value):
+                  return value.replace('%', '%25').replace('\r', '%0D').replace('\n', '%0A')
+              # Register every derived address/key component before writing step environment.
+              for value in sorted(masks):
+                  print('::add-mask::' + command_escape(value), flush=True)
+              with Path(os.environ['GITHUB_ENV']).open('a') as output:
+                  for key, value in values.items():
+                      output.write('AQ_SAMPLE_' + key.removeprefix('AQ_') + '=' + value + '\n')
+                  output.write('AQ_SAMPLE_AGENT_ENDPOINT=' + endpoint + '\n')
+          except Exception:
+              raise SystemExit('Protected evaluation binding is unavailable or invalid. No evaluation started.') from None
+          PYTHON
+      - id: evaluation
+        uses: beyhangll/workbench-sdk/.github/actions/evaluate@1f2091e3e58ba7877a8bb017ca87b347fb5daf3c
+        continue-on-error: true
+        with:
+          endpoint: ${{ env.AQ_SAMPLE_ENDPOINT }}
+          ui-url: ${{ env.AQ_SAMPLE_UI_URL }}
+          api-key: ${{ env.AQ_SAMPLE_API_KEY }}
+          target: ${{ vars.AQ_AGENT }}
+          dataset: ${{ vars.AQ_DATASET }}
+          agent-endpoint: ${{ env.AQ_SAMPLE_AGENT_ENDPOINT }}
+          commit: ${{ github.event.pull_request.head.sha }}
+          base-commit: ${{ vars.AQ_BASE_DEPLOYED_COMMIT }}
+          base-endpoint: ${{ vars.AQ_BASE_AGENT_ENDPOINT }}
+          baseline-experiment: ${{ vars.AQ_BASELINE_EXPERIMENT }}
+          budget: ${{ vars.AQ_BUDGET_USD }}
+          timeout: ${{ vars.AQ_TIMEOUT_SECONDS }}
+          github-token: ${{ github.token }}
+          publisher-id: ${{ vars.AQ_COMMENT_PUBLISHER_ID }}
+          check-app-id: ${{ vars.AQ_CHECK_APP_ID }}
+          check-key: ${{ vars.AQ_CHECK_KEY }}
+          allow-forks: false
+          publish-report-links: false
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always() && steps.evaluation.outputs.report-dir != ''
+        with:
+          name: evaluation-aggregate
+          path: |
+            ${{ steps.evaluation.outputs.report-dir }}/evaluation.md
+            ${{ steps.evaluation.outputs.report-dir }}/aggregate-result.json
+            ${{ steps.evaluation.outputs.report-dir }}/publication.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Preserve evaluation or publication failure
+        if: always()
+        env:
+          EVALUATION_OUTCOME: ${{ steps.evaluation.outcome }}
+        run: test "$EVALUATION_OUTCOME" = success

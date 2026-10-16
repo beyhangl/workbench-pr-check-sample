@@ -170,7 +170,7 @@ jobs:
               raise SystemExit('Immutable prompt data could not be verified. No evaluation started.') from None
           PYTHON
       - id: evaluation
-        uses: beyhangll/workbench-sdk/.github/actions/evaluate@6e6b49c77c8968e2efd329fe7fbca12fbb39fe19
+        uses: beyhangll/workbench-sdk/.github/actions/evaluate@61150d4dfa291f394eb9323dd1e92d86d6ce9ea2
         continue-on-error: true
         with:
           endpoint: ${{ env.AQ_SAMPLE_ENDPOINT }}

@@ -1,36 +1,62 @@
-# Fictional PR evaluation sample
+# PR evaluation sample
 
-This public repository demonstrates the reviewed Workbench SDK and GitHub evaluation Action with fictional task data only. No live acceptance run, passing check, or regression check has completed. Source review and offline tests do not establish live acceptance.
+This repository contains a generic reference-agent prompt and one evaluation workflow. It has no customer records, task rows, saved answers, credentials or private service addresses. The existing evaluation dataset contains public weather observations in the product's own test workspace. Those records remain outside this repository. They are not described as fictional observations.
 
-## Trusted sample procedure
+No live sample acceptance has run. Offline review does not establish live acceptance.
 
-Only the repository owner creates and opens `sample/pass` and `sample/regression` pull requests into `develop`. Before opening either PR, independently confirm that its workflow bytes match the reviewed workflow and that its target, baseline, scoring controls and execution estimate are approved. A plain `pull_request` event evaluates the PR's workflow definition: the absence of an explicit checkout does not make that definition immutable or safe for untrusted contributors.
+## What the two PRs test
 
-The job accepts only an `opened` event, a same-repository head and base, the repository owner as PR author, actor and triggering actor, and the first run attempt. It neither checks out PR files nor downloads PR executables. Synchronization, reopen and manual rerun must not submit another evaluation. Reconcile an uncertain result with the Action's existing read-only reconciliation path outside this workflow; never rerun to replace it.
+The same non-production reference AgentCore runtime and DEFAULT endpoint serve every experiment. No second endpoint, model deployment or cloud resource is needed. Per-run system-prompt overrides use the existing agent contract. The backend refuses a response that does not confirm the exact requested prompt hash.
 
-The fixed mapping is declared before any outcomes:
+`prompts/reference-system.txt` contains the public reference-agent instructions plus two explicit rules: use `monthly_summary` for whole-month totals and put the numeric total before any station ID or date. This is a new prompt-override baseline. It is not a claim about the runtime's default prompt or deployed source.
 
-| Trusted head branch | Connected AgentCore endpoint qualifier |
-| --- | --- |
-| `sample/pass` | `AQ_BASE_AGENT_ENDPOINT`, the verified healthy/base endpoint |
-| `sample/regression` | `AQ_REGRESSION_AGENT_ENDPOINT`, a verified separate regressed endpoint |
+| Branch | Prompt change | Intended check |
+| --- | --- | --- |
+| `sample/pass` | Add a harmless clarity instruction | No regression, exit 0. A tie produces a neutral owned check. |
+| `sample/regression` | Deliberately report zero for monthly precipitation, ignoring the observed total | Regression, exit 1 and a failing owned check, if the retained evidence supports it. |
 
-An empty selected qualifier refuses execution; it never falls back to the other endpoint. The workflow deploys nothing. The PR head SHA and protected base SHA are declarations, not deployment or serving-model attestation. A source-only PR edit does not by itself change either agent endpoint.
+All eight unchanged references are nonzero. Graders and reference values stay fixed. Merely summing daily rainfall is not intrinsically wrong, so that is not the chosen mutation. Outcomes are measured, never fabricated. No change, rerun or replacement follows an inconclusive result.
+
+## Protected inputs and publication
+
+Only the repository owner opens the two named branches into `develop`. Before either opening, independently verify that its workflow is identical to the reviewed source. A `pull_request` workflow definition comes from the PR. No checkout does not make an untrusted workflow safe.
+
+The job accepts only same-repository owner-created opening events, the owner as actor and triggering actor, and attempt one. It reads only the fixed prompt path from the exact PR base and head commits using GitHub's data API. It verifies the returned blob bytes and stores private data files. It records only validated commit, blob and prompt hashes in the step summary. It never checks out or runs PR project code. Synchronization, reopen and manual rerun cannot submit another experiment.
+
+The Action must support both `system-prompt-file` and `base-system-prompt-file`. It snapshots both inputs before preflight. The persisted baseline prompt must match the base file, and the candidate must retain the head prompt. Both use DEFAULT. Prompt hashes are attribution, not deployment or underlying served-model attestation. No active model override is permitted for this prompt-only comparison.
+
+A genuine baseline must bind to the actual protected sample base commit. Historical runs without that binding cannot be reused or relabelled. Keep the base branch unchanged until both sample checks finish. Never merge the harmless PR between checks.
+
+The baseline and candidates use the same dataset version, eight development rows, one repetition, two deterministic scorers and rejected-row policy. No held-out or customer data is used. For the planned wrong-zero mutation, the current exact comparison requires at least seven paired losses, no paired gains and only ties among the remaining rows to establish regression. A weaker baseline may leave the deliberate regression inconclusive. That is retained, not repaired by tuning or weakening a scorer.
 
 ## Private configuration
 
-Use exactly one configured secret, `AQ_SAMPLE_BINDING`, containing the three string fields `AQ_ENDPOINT`, `AQ_UI_URL` and `AQ_API_KEY`. Keep that JSON, its addresses and credential out of this repository, comments and artifacts. The workflow masks each derived component and hostname before exporting step environment. The built-in `github.token` is a separate runtime publisher token; no additional stored GitHub credential is required.
+The only configured secret is `AQ_SAMPLE_BINDING`, with `AQ_ENDPOINT`, `AQ_UI_URL` and `AQ_API_KEY`. Never publish these values. The workflow masks derived values before exporting its step environment. The built-in repository token is separate.
 
-Owner-verified, privacy-safe configuration variables supply `AQ_AGENT`, `AQ_DATASET`, `AQ_BASELINE_EXPERIMENT`, `AQ_BASE_DEPLOYED_COMMIT`, `AQ_BASE_AGENT_ENDPOINT`, `AQ_REGRESSION_AGENT_ENDPOINT`, `AQ_COMMENT_PUBLISHER_ID`, `AQ_CHECK_APP_ID`, `AQ_CHECK_KEY`, `AQ_BUDGET_USD` and `AQ_TIMEOUT_SECONDS`. Publisher and App IDs must describe the actual token's trusted identities, never the PR author. These variables are requirements, not populated sample values.
+Non-secret variables supply the connected agent, dataset, baseline experiment, actual base commit, trusted comment publisher and check App IDs, check key, budget and timeout. The evaluation key needs `agents:read`, `datasets:read`, `scorers:read`, `experiments:read` and `experiments:write`. All five have already been verified. Repository permissions are limited to contents read, pull requests write and checks write.
 
-The connected target must be a permitted non-production AgentCore runtime. Its immutable baseline must belong to that same agent and dataset, match the current PR base commit and effective base endpoint, use development scope with no pinned row IDs and `include_rejected: false`, and contain complete attempts and scorer results. Baseline and candidate retain the same dataset version, scorer settings and repetitions. The Action verifies these records and the current scorer-only readback before submitting one experiment; it does not generate a qualifying baseline or replace it with a fixture. Endpoint selection does not support arbitrary HTTP agents or inline prompt/model overrides.
+The workflow pins the reviewed Action to a full commit SHA. That source must be published before activation. It omits private report links and uploads only its three allowlisted aggregate files for seven days. Raw prompt payloads, task rows, answers and private debug files are not uploaded or included in comments. The generic prompt file above is intentionally public source.
 
-The evaluation key needs `agents:read`, `datasets:read`, `scorers:read`, `experiments:read` and `experiments:write`. Repository permissions remain `contents: read`, `pull-requests: write` and `checks: write`. This source grants no account or repository permissions.
+## Execution approval, not yet granted
 
-A positive per-experiment budget and approved call, duration and cost assumptions are required before execution. That budget is not a verified per-key or cumulative billing cap. Current planning has eight planned development task calls, but usable serving-model identity, inference prices and a complete cost estimate are unresolved; there is no paid-run approval or implicit permission to submit.
+The prepared scope is eight unchanged rows, one repetition and three experiments: eight baseline requests, eight harmless-PR requests and eight regression-PR requests. Total: **24 target requests**, serially, with **zero model-judge, reflection or title calls** in the reference implementation. Internal tool/model turns and retries may exceed the target-request count.
 
-The Action is pinned to `1f2091e3e58ba7877a8bb017ca87b347fb5daf3c`. `publish-report-links: false` omits the report link and refuses remaining known address disclosure. Only the three allowlisted aggregate files may be uploaded, with seven-day retention. Never publish private debug files, raw case rows, prompts, answers, credentials or customer records.
+A retained eight-row Nova Pro experiment reports a token-cost subtotal of $0.039502. Three such batches give $0.118506. The working estimate is **about $0.15 in observed-token cost**, with the current serving model, token growth, runtime compute and hidden usage unresolved. This is not a billing cap. Allow roughly 5–15 minutes including queueing, polling and publication, rather than interpreting the timeout as expected duration.
 
-## Current acceptance status
+Before any baseline or sample run, the owner must approve the exact rows, calls, duration, cost assumptions and the two deliberate sample-opening events. Source commits retain `[skip ci]`. The paid-run approval must explicitly cover activation of those public sample events. No workflow is dispatched manually.
 
-The source is prepared for independent review only. No compatible immutable baseline or verified healthy/regressed runtime pair is available for this sample, and no live evaluation or publication has run. Before activation, the owner must verify those bindings, independently inspect both trusted PR heads, and approve the concrete paid execution scope. Keep every first outcome and reconcile uncertainty read-only. Do not create resources, deploy, alter shared systems or weaken scoring to obtain a sample result.
+The existing CLI can create the baseline after that approval. Run it from the independently verified protected base checkout, using private credentials supplied by the approved mechanism. Keep its output in an owner-only private file named by `AQ_PRIVATE_BASE_REPORT`:
+
+```bash
+aq eval run --target "$AQ_AGENT" --dataset "$AQ_DATASET" \
+  --dataset-version 2 --row-scope development \
+  --scorer "$AQ_NUMBER_SCORER" --scorer "$AQ_CONTAINS_SCORER" \
+  --repeats 1 --concurrency 1 --agent-endpoint DEFAULT \
+  --commit "$AQ_SAMPLE_BASE_SHA" \
+  --system-prompt-file prompts/reference-system.txt \
+  --budget 0.50 --timeout 600 --report-file /dev/null --json > "$AQ_PRIVATE_BASE_REPORT"
+```
+
+`AQ_SAMPLE_BASE_SHA` must come from this repository's verified base commit. The two scorer IDs and dataset membership are recorded in the private execution preparation. The $0.50 per-experiment metered budget is separate from the $0.15 total planning estimate. It is neither a key-level nor cumulative billing guarantee. Inspect the first retained baseline before opening either sample PR. Stop on uncertain completion, failed override attribution or materially unexpected usage. Reconcile read-only without another submission.
+
+The issue stays open until real comments and owned checks are retained. No qualification, production release or customer acceptance is claimed.

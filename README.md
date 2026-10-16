@@ -2,7 +2,54 @@
 
 This repository contains a generic reference-agent prompt and one evaluation workflow. It has no customer records, task rows, saved answers, credentials or private service addresses. The existing evaluation dataset contains public weather observations in the product's own test workspace. Those records remain outside this repository. They are not described as fictional observations.
 
-No live sample acceptance has run. Offline review does not establish live acceptance.
+The approved 24-request sample completed on 16 October 2026. Both PRs published
+comments and neutral evaluation checks. A clear regression producing a failing
+check was **not** demonstrated. The retained results below are development
+evidence, not qualification or customer acceptance.
+
+## Retained results
+
+The protected base was `c6ccd335bc4912c74512215f409eb11f8af72303`.
+The workflow used Action `61150d4dfa291f394eb9323dd1e92d86d6ce9ea2`,
+integrated into SDK develop as `6f403c2d3c79a011773475dd2df74be07bd95867`.
+All three experiments used the same eight development rows, dataset version,
+deterministic graders and DEFAULT endpoint. They each completed eight target
+requests with zero reported target errors or timeouts.
+
+| Position | Numeric / contains passes | Reported token cost | Latency p50 / p95 |
+| --- | --- | --- | --- |
+| Protected baseline | 4/8 / 6/8 | $0.002950 | 5.221 s / 5.507 s |
+| [Harmless PR](https://github.com/beyhangl/workbench-pr-check-sample/pull/3) | 8/8 / 8/8 | $0.002947 | 5.368 s / 5.635 s |
+| [Wrong-total PR](https://github.com/beyhangl/workbench-pr-check-sample/pull/4) | 4/8 / 6/8 | $0.003116 | 5.272 s / 5.403 s |
+
+The harmless PR published its [comment](https://github.com/beyhangl/workbench-pr-check-sample/pull/3#issuecomment-6220398537)
+and [neutral check](https://github.com/beyhangl/workbench-pr-check-sample/runs/117088860074).
+It improved four numeric pairs and two contains pairs, with no paired losses.
+The wrong-total PR published its [comment](https://github.com/beyhangl/workbench-pr-check-sample/pull/4#issuecomment-6220433345)
+and [neutral check](https://github.com/beyhangl/workbench-pr-check-sample/runs/117089706643).
+It had two gains and two losses on the numeric grader, and one gain and one loss
+on contains. The intended regression instruction did not establish clear
+degradation. Override acknowledgement proves the supplied prompt hash, not
+semantic obedience to every instruction.
+
+Both workflow jobs succeeded. Both evaluation verdicts remained
+`no_clear_difference`, with exit 0 and neutral owned checks. Neither job success
+nor a neutral result is a statistical improvement or a quality-regression failure.
+The baseline's existing failures prevent the wrong-zero mutation from reaching
+the current eight-row regression bound. No scorer, reference, threshold or
+baseline was changed to force a different result.
+
+The reported token-cost subtotal was **$0.009013** across 24 target requests.
+The conservative maximum-observed accounting ledger was $0.009013022 because
+progress values and rounded terminal totals differ slightly. All responses
+reported the expected override digest. The runtime reported Nova Lite usage,
+but underlying serving identity and complete internal attempts were not
+independently attested. Runtime charges, hidden usage and actual billing remain
+unknown. No model-judge, title or reflection call was submitted.
+
+This batch is finished. It used exactly the two approved commits without
+`[skip ci]`. There were no replacement requests or manual workflow reruns.
+Do not reopen, synchronize or rerun these PRs to obtain a preferred outcome.
 
 ## What the two PRs test
 
@@ -37,15 +84,27 @@ Non-secret variables supply the connected agent, dataset, baseline experiment, a
 
 The workflow pins the reviewed Action to a full commit SHA. That source must be published before activation. It omits private report links and uploads only its three allowlisted aggregate files for seven days. Raw prompt payloads, task rows, answers and private debug files are not uploaded or included in comments. The generic prompt file above is intentionally public source.
 
-## Execution approval, not yet granted
+## Approved scope and reproducible invocation
 
-The prepared scope is eight unchanged rows, one repetition and three experiments: eight baseline requests, eight harmless-PR requests and eight regression-PR requests. Total: **24 target requests**, serially, with **zero model-judge, reflection or title calls** in the reference implementation. Internal tool/model turns and retries may exceed the target-request count.
+The owner approved and completed scope was eight unchanged rows, one repetition
+and three experiments: eight baseline requests, eight harmless-PR requests and
+eight regression-PR requests. Total: **24 target requests**, serially, with
+**zero model-judge, reflection or title calls** in the reference implementation.
+Internal tool/model turns and retries may exceed the target-request count.
 
 A retained eight-row Nova Pro experiment reports a token-cost subtotal of $0.039502. Three such batches give $0.118506. The working estimate is **about $0.15 in observed-token cost**, with the current serving model, token growth, runtime compute and hidden usage unresolved. This is not a billing cap. Allow roughly 5–15 minutes including queueing, polling and publication, rather than interpreting the timeout as expected duration.
 
-Before any baseline or sample run, the owner must approve the exact rows, calls, duration, cost assumptions and the two deliberate sample-opening events. Source commits retain `[skip ci]`. The paid-run approval must explicitly cover activation of those public sample events. No workflow is dispatched manually.
+That approval covered only this batch and its two deliberate sample-opening
+events. Source and documentation commits retain `[skip ci]`. No workflow was
+dispatched manually. Stop rules required no retries after repeated errors and
+no further execution once observed cost exceeded $1. Observation was
+conservative at the first visible execution error. It was not an atomic billing
+cap and could not prevent an already in-flight request from completing.
 
-The existing CLI can create the baseline after that approval. Run it from the independently verified protected base checkout, using private credentials supplied by the approved mechanism. Keep its output in an owner-only private file named by `AQ_PRIVATE_BASE_REPORT`:
+The following is the retained baseline invocation, not permission to submit it
+again. It ran from the independently verified protected base checkout with
+private credentials. Output stays in an owner-only private file named by
+`AQ_PRIVATE_BASE_REPORT`:
 
 ```bash
 aq eval run --target "$AQ_AGENT" --dataset "$AQ_DATASET" \
@@ -59,4 +118,7 @@ aq eval run --target "$AQ_AGENT" --dataset "$AQ_DATASET" \
 
 `AQ_SAMPLE_BASE_SHA` must come from this repository's verified base commit. The two scorer IDs and dataset membership are recorded in the private execution preparation. The $0.50 per-experiment metered budget is separate from the $0.15 total planning estimate. It is neither a key-level nor cumulative billing guarantee. Inspect the first retained baseline before opening either sample PR. Stop on uncertain completion, failed override attribution or materially unexpected usage. Reconcile read-only without another submission.
 
-The issue stays open until real comments and owned checks are retained. No qualification, production release or customer acceptance is claimed.
+Real comments and owned neutral checks are retained. The delivery issue remains
+open because the required clear-regression/failing-check demonstration is still
+missing. No additional run, weaker decision rule, qualification, production
+release or customer acceptance is implied by this documentation.

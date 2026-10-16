@@ -1,5 +1,33 @@
 # PR evaluation sample
 
+This repository contains a generic reference-agent prompt and one evaluation workflow. It contains no customer records, task rows, saved answers, credentials or private service addresses. The evaluation data are public weather observations in the product's own test workspace. They are not fictional observations.
+
+## Completed 24-row diagnostic
+
+The separately approved second round completed on 16 October 2026. A fresh protected-base control and both unchanged prompt variants each used 24 confirmed development rows from the same dataset version, one repetition, two unchanged deterministic scorers and the DEFAULT endpoint. All 72 target requests completed serially, with no reported target errors or timeouts. All 72 responses acknowledged their expected prompt digest.
+
+Execution used sample base `917f8e6ccd89758ad26c197251893caabf3708e2` and Action `61150d4dfa291f394eb9323dd1e92d86d6ce9ea2`. The later README update is not the executed base. Existing prompt heads were reused in new PR IDs. The original PR3/4 and their results were preserved unmerged, not rerun or relabelled.
+
+| Position | Leading-total passes | Contains passes | Reported token cost | Owned check |
+| --- | --- | --- | --- | --- |
+| Protected baseline | 0/24 | 24/24 | $0.008480 | Protected control |
+| [Harmless change](https://github.com/beyhangl/workbench-pr-check-sample/pull/6) | 0/24 | 24/24 | $0.008365 | [Neutral](https://github.com/beyhangl/workbench-pr-check-sample/runs/117163400924) |
+| [Wrong-total change](https://github.com/beyhangl/workbench-pr-check-sample/pull/7) | 0/24 | 16/24 | $0.008760 | [Failure](https://github.com/beyhangl/workbench-pr-check-sample/runs/117164740582) |
+
+Real comments: [harmless](https://github.com/beyhangl/workbench-pr-check-sample/pull/6#issuecomment-6223396205) and [wrong-total](https://github.com/beyhangl/workbench-pr-check-sample/pull/7#issuecomment-6223448080). The harmless workflow exited 0 with 24 paired ties on each scorer. The wrong-total workflow exited 1 because contains had 8 paired losses, 0 gains and 16 ties. Its upper one-sided confidence bound was about -0.01383. The leading-total scorer had 24 ties at zero passes, so it provided no regression evidence. These task-quality limitations are retained without changing graders or references.
+
+Reported token cost for this round was **$0.025605**. The conservative maximum-observed subtotal was $0.025605316 because progress and terminal totals differ slightly. Including the earlier 24-request round, reported token cost was $0.034618. No model-judge, title or reflection stage, replacement request or automatic rerun was submitted. Hidden turns/retries, runtime charges and actual billing remain unknown. The $0.50 per-experiment meter and $1 observed-cost stop are not guaranteed complete-billing caps.
+
+This demonstrates real comment/check publication, a harmless neutral path and a scored regression failure. It does not establish qualification, release acceptance, a generally strong baseline or independently attested deployment/model identity. No dataset, threshold, prompt or scorer was edited for this round. A separate product follow-up covers development must-pass checks without signed release evidence.
+
+The workflow and protected private binding remain unchanged. Future execution requires its own approved scope, a genuine matching baseline and fresh supported PR-opening events. Do not reopen or rerun these PRs to obtain different results.
+
+<details>
+<summary>Original eight-row round and setup instructions, retained as historical evidence</summary>
+
+The following section describes the earlier batch and its then-current acceptance status. Its eight-row bindings and open-delivery wording are historical. The completed 24-row round above supersedes that status. Neither historical batch is relabelled.
+
+
 This repository contains a generic reference-agent prompt and one evaluation workflow. It has no customer records, task rows, saved answers, credentials or private service addresses. The existing evaluation dataset contains public weather observations in the product's own test workspace. Those records remain outside this repository. They are not described as fictional observations.
 
 The approved 24-request sample completed on 16 October 2026. Both PRs published
@@ -122,3 +150,5 @@ Real comments and owned neutral checks are retained. The delivery issue remains
 open because the required clear-regression/failing-check demonstration is still
 missing. No additional run, weaker decision rule, qualification, production
 release or customer acceptance is implied by this documentation.
+
+</details>
